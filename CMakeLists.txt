@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.0)
 get_filename_component(BASENAME ${CMAKE_SOURCE_DIR} NAME)
 project(${BASENAME})
 
+
 option(COVERAGE "Coverage" OFF)
 
 set(CMAKE_C_FLAGS "-Wall")
@@ -23,7 +24,20 @@ endif()
 # define executable to build
 include_directories("inc")
 aux_source_directory(src SRC_FILES)
+list(REMOVE_ITEM SRC_FILES "src/v4l2rtspserver.cpp")
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+
+SET(LIB_PROJECT_NAME v4l2rtspsrv)
+aux_source_directory(src LIB_SRC_FILES)
+list(REMOVE_ITEM LIB_SRC_FILES "src/main.cpp")
+add_library(${LIB_PROJECT_NAME} ${LIB_SRC_FILES})
+target_include_directories(${LIB_PROJECT_NAME}
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/inc
+)
+
+install(TARGETS ${LIB_PROJECT_NAME} DESTINATION lib)
 
 if (COVERAGE)
 	set(COVERAGE_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
@@ -49,10 +63,13 @@ if (NOT V4L2WRAPPER_LIBRARY)
         message(STATUS "v4l2wrapper built in V4L2WRAPPER_LIBRARY=${V4L2WRAPPER_LIBRARY}")	
 endif (NOT V4L2WRAPPER_LIBRARY)
 target_link_libraries(${PROJECT_NAME} ${V4L2WRAPPER_LIBRARY})
+target_link_libraries(${LIB_PROJECT_NAME} ${V4L2WRAPPER_LIBRARY})
+
 
 #pthread
 find_package (Threads)
 target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT}) 
+target_link_libraries(${LIB_PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 
 #ALSA
 find_package(ALSA QUIET)
@@ -60,6 +77,7 @@ if (ALSA_LIBRARY)
 	message(STATUS "Alsa available")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ALSA")
         target_link_libraries (${PROJECT_NAME} ${ALSA_LIBRARY}) 
+	target_link_libraries (${LIB_PROJECT_NAME} ${ALSA_LIBRARY}) 
 	
 	SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS}libasound2-dev,)	
 endif (ALSA_LIBRARY)
@@ -73,6 +91,7 @@ if (LOG4CPP_INCLUDE_DIR)
 
 	find_library(LOG4CPP_LIBRARY log4cpp)
 	target_link_libraries(${PROJECT_NAME} "${LOG4CPP_LIBRARY}")
+	target_link_libraries(${LIB_PROJECT_NAME} "${LOG4CPP_LIBRARY}")
 	
 	SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS}liblog4cpp5-dev,)
 endif (LOG4CPP_INCLUDE_DIR)
@@ -101,6 +120,7 @@ foreach (LIBLIVE555_module groupsock liveMedia UsageEnvironment BasicUsageEnviro
 	endif ( ${LIBLIVE555_module}_LIBRARY )
 endforeach (LIBLIVE555_module)
 target_link_libraries(${PROJECT_NAME} ${LIBLIVE555_LIBRARIES})
+target_link_libraries(${LIB_PROJECT_NAME} ${LIBLIVE555_LIBRARIES})
 
 #testing
 enable_testing()
