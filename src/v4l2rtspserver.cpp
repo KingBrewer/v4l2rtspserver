@@ -4,12 +4,15 @@
 
 #include "commonserverruntime.h"
 
-using namespace v4l2rtspserver;
+namespace v4l2rtspserver {
 
 SERVER_CONTEXT CTX;
 
-int run_streamer(const char* video_source, const int& width, const int& height, const int& fps)
+int run_streamer(const char* video_source, const int& width, const int& height, const int& fps, bool vflip, bool hflip, const int& rotation)
 {
+    (void)vflip;
+    (void)hflip;
+    (void)rotation;
     CTX.ctl_params.dev_name = video_source;
     CTX.ctl_params.width = width;
     CTX.ctl_params.height = height;
@@ -25,3 +28,4 @@ int stop_streamer()
     return 0;
 }
 
+}
