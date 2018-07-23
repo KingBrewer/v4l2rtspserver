@@ -25,7 +25,7 @@ int run_streamer(const char* video_source, const int& width, const int& height, 
 int stop_streamer()
 {
     stop_server(CTX);
-    return 0;
+    return wait_for_server(CTX);
 }
 
 }
