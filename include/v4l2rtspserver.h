@@ -3,7 +3,7 @@
 
 namespace v4l2rtspserver {
 
-int run_streamer(const char* video_source, const int& width, const int& height, const int& fps, bool vflip, bool hflip, const int& rotation);
+int run_streamer(const char* video_source, const unsigned short& rtspPort, const int& width, const int& height, const int& fps, bool vflip, bool hflip, const int& rotation);
 int stop_streamer();
 
 }
