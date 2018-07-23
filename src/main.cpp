@@ -20,7 +20,6 @@
 #include "logger.h"
 #include "commonserverruntime.h"
 
-
 SERVER_CONTEXT CTX;
 
 // -----------------------------------------
@@ -38,11 +37,13 @@ int main(int argc, char** argv)
 {
     if (CTX.ctl_params.parse_input_params(argc, argv)) {
         signal(SIGINT,sighandler);
-        return start_server(CTX);
+        if (0 != start_server(CTX))
+        {
+            LOG(ERROR) << "Cannot start server";
+            return 1;
+        }
+        return wait_for_server(CTX);
     }
     return 1;
-
 }
-
-
 

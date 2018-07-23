@@ -758,20 +758,13 @@ void* server_start_fun(void *CTX) {
 
 
 int start_server(SERVER_CONTEXT& server_params) {
-    pthread_t thr;
-
-    if (pthread_create(&thr, NULL, server_start_fun, &server_params)) {
+    if (pthread_create(&server_params.thr, NULL, server_start_fun, &server_params)) {
         LOG(ERROR) << "error while creating thread";
         return 1;
     }
 
     LOG(NOTICE) << "main thread started";
 
-    if(pthread_join(thr, NULL)) {
-        LOG(ERROR) << "Error joining thread";
-        return 2;
-    }
-    LOG(NOTICE) << "main thread stopped";
     return 0;
 }
 
@@ -780,3 +773,14 @@ void stop_server(SERVER_CONTEXT &server_params)
     LOG(NOTICE) << "stopping main thread";
     server_params.quit = 1;
 }
+
+int wait_for_server(SERVER_CONTEXT& server_params)
+{
+    if(pthread_join(server_params.thr, NULL)) {
+        LOG(ERROR) << "Error joining thread";
+        return 2;
+    }
+    LOG(NOTICE) << "main thread stopped";
+    return 0;
+}
+

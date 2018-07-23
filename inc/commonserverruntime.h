@@ -47,6 +47,7 @@ struct SERVER_CONTROL_PARAMETERS {
 };
 
 struct SERVER_CONTEXT {
+    pthread_t thr;
     char quit;
     SERVER_CONTROL_PARAMETERS ctl_params;
 
@@ -54,6 +55,7 @@ struct SERVER_CONTEXT {
 };
 
 int start_server(SERVER_CONTEXT& server_params);
+int wait_for_server(SERVER_CONTEXT& server_params);
 void stop_server(SERVER_CONTEXT& server_params);
 
 void display_help(const SERVER_CONTROL_PARAMETERS& params);

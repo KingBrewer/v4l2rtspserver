@@ -30,7 +30,7 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 SET(LIB_PROJECT_NAME v4l2rtspsrv)
 aux_source_directory(src LIB_SRC_FILES)
 list(REMOVE_ITEM LIB_SRC_FILES "src/main.cpp")
-add_library(${LIB_PROJECT_NAME} ${LIB_SRC_FILES})
+add_library(${LIB_PROJECT_NAME} STATIC ${LIB_SRC_FILES})
 target_include_directories(${LIB_PROJECT_NAME}
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
