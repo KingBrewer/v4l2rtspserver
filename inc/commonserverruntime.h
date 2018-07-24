@@ -39,6 +39,9 @@ struct SERVER_CONTROL_PARAMETERS {
     std::list<snd_pcm_format_t> audioFmtList;
     snd_pcm_format_t audioFmt;
 #endif
+    bool vFlip;
+    bool hFlip;
+    int rotation;
     std::list<std::string> devList;
 
     SERVER_CONTROL_PARAMETERS();

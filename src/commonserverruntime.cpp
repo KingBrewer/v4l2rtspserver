@@ -379,7 +379,7 @@ std::string  getV4l2Alsa(const std::string& v4l2device) {
 
 
 SERVER_CONTROL_PARAMETERS::SERVER_CONTROL_PARAMETERS() :
-    dev_name("/dev/video0"),
+    dev_name("/dev/video0,/dev/video0"),
     format(~0),
     width(0),
     height(0),
@@ -399,13 +399,15 @@ SERVER_CONTROL_PARAMETERS::SERVER_CONTROL_PARAMETERS() :
     muxTS(false),
     defaultHlsSegment(5),
     hlsSegment(0),
-    realm(NULL)
+    realm(NULL),
 #ifdef HAVE_ALSA
-    ,
     audioFreq(44100),
     audioNbChannels(2),
-    audioFmt(SND_PCM_FORMAT_UNKNOWN)
+    audioFmt(SND_PCM_FORMAT_UNKNOWN),
 #endif
+    vFlip(false),
+    hFlip(false),
+    rotation(0)
 {
 }
 
