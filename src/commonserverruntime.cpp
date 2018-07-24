@@ -530,6 +530,35 @@ void SERVER_CONTROL_PARAMETERS::display_help()
     std::cout << "\t [V4L2 device][,ALSA device] : V4L2 capture device or/and ALSA capture device (default "<< dev_name << ")"     << std::endl;
 }
 
+void set_flip_and_rotation(V4l2Access* dev, bool vflip, bool hflip, const int& rotation) {
+	struct v4l2_queryctrl queryctrl;
+	struct v4l2_control control;
+	int fd = dev->getFd();
+	
+	memset(&queryctrl, 0, sizeof(queryctrl));
+	queryctrl.id = V4L2_CID_VFLIP;
+
+	if (-1 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)) {
+	    if (errno != EINVAL) {
+		LOG(ERROR) << "VIDIOC_QUERYCTRL";
+		return;
+	    } else {
+		LOG(ERROR) << "V4L2_CID_VFLIP is not supported";
+	    }
+	} else if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED) {
+	    LOG(ERROR) << "V4L2_CID_VFLIP control disabled";
+	} else {
+	    memset(&control, 0, sizeof (control));
+	    control.id = V4L2_CID_VFLIP;
+	    control.value = 1;
+
+	    if (-1 == ioctl(fd, VIDIOC_S_CTRL, &control)) {
+		LOG(ERROR) << "VIDIOC_S_CTRL (VFLIP not set)";
+		return;
+	    }
+	}
+}
+
 void* server_start_fun(void *CTX) {
     SERVER_CONTEXT* ctx = reinterpret_cast<SERVER_CONTEXT*>(CTX);
     SERVER_CONTROL_PARAMETERS& params = ctx->ctl_params;
@@ -637,6 +666,10 @@ void* server_start_fun(void *CTX) {
                             {
                                 OutPacketBuffer::maxSize = videoCapture->getBufferSize();
                             }
+
+			    // set flip/rotation parameters
+			    set_flip_and_rotation(videoCapture, params.vFlip, params.hFlip, params.rotation);
+
                             videoReplicator = StreamReplicator::createNew(*env, videoSource, false);
                         }
                     }
