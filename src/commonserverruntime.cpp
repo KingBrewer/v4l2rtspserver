@@ -530,33 +530,44 @@ void SERVER_CONTROL_PARAMETERS::display_help()
     std::cout << "\t [V4L2 device][,ALSA device] : V4L2 capture device or/and ALSA capture device (default "<< dev_name << ")"     << std::endl;
 }
 
+void set_v4l2_control_parameter(V4l2Access* dev, const __u32& cid_option, const __s32& value) {
+    struct v4l2_queryctrl queryctrl;
+    struct v4l2_control control;
+    int fd = dev->getFd();
+
+    LOG(NOTICE) << "attempt to set V4L2_CID_" << cid_option << " to value: " << value;
+
+    memset(&queryctrl, 0, sizeof(queryctrl));
+    queryctrl.id = cid_option;
+
+    if (-1 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)) {
+        if (errno != EINVAL) {
+            LOG(ERROR) << "VIDIOC_QUERYCTRL";
+            return;
+        }
+        else {
+            LOG(ERROR) << "V4L2_CID_" << cid_option << " is not supported";
+        }
+    }
+    else if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED) {
+        LOG(ERROR) << "V4L2_CID_" << cid_option << " control disabled";
+    }
+    else {
+        memset(&control, 0, sizeof(control));
+        control.id = cid_option;
+        control.value = value;
+
+        if (-1 == ioctl(fd, VIDIOC_S_CTRL, &control)) {
+            LOG(ERROR) << "VIDIOC_S_CTRL (" << cid_option << "has not been set)";
+            return;
+        }
+    }
+}
+
 void set_flip_and_rotation(V4l2Access* dev, bool vflip, bool hflip, const int& rotation) {
-	struct v4l2_queryctrl queryctrl;
-	struct v4l2_control control;
-	int fd = dev->getFd();
-	
-	memset(&queryctrl, 0, sizeof(queryctrl));
-	queryctrl.id = V4L2_CID_VFLIP;
-
-	if (-1 == ioctl(fd, VIDIOC_QUERYCTRL, &queryctrl)) {
-	    if (errno != EINVAL) {
-		LOG(ERROR) << "VIDIOC_QUERYCTRL";
-		return;
-	    } else {
-		LOG(ERROR) << "V4L2_CID_VFLIP is not supported";
-	    }
-	} else if (queryctrl.flags & V4L2_CTRL_FLAG_DISABLED) {
-	    LOG(ERROR) << "V4L2_CID_VFLIP control disabled";
-	} else {
-	    memset(&control, 0, sizeof (control));
-	    control.id = V4L2_CID_VFLIP;
-	    control.value = 1;
-
-	    if (-1 == ioctl(fd, VIDIOC_S_CTRL, &control)) {
-		LOG(ERROR) << "VIDIOC_S_CTRL (VFLIP not set)";
-		return;
-	    }
-	}
+    set_v4l2_control_parameter(dev, V4L2_CID_VFLIP, vflip);
+    set_v4l2_control_parameter(dev, V4L2_CID_HFLIP, hflip);
+    set_v4l2_control_parameter(dev, V4L2_CID_ROTATE, rotation);
 }
 
 void* server_start_fun(void *CTX) {
@@ -637,6 +648,9 @@ void* server_start_fun(void *CTX) {
                 {
                     int outfd = -1;
 
+                    // set flip/rotation parameters
+                    set_flip_and_rotation(videoCapture, params.vFlip, params.hFlip, params.rotation);
+
                     if (!params.outputFile.empty())
                     {
                         V4L2DeviceParameters outparam(params.outputFile.c_str(), videoCapture->getFormat(), videoCapture->getWidth(), videoCapture->getHeight(), 0, params.verbose);
@@ -666,9 +680,6 @@ void* server_start_fun(void *CTX) {
                             {
                                 OutPacketBuffer::maxSize = videoCapture->getBufferSize();
                             }
-
-			    // set flip/rotation parameters
-			    set_flip_and_rotation(videoCapture, params.vFlip, params.hFlip, params.rotation);
 
                             videoReplicator = StreamReplicator::createNew(*env, videoSource, false);
                         }

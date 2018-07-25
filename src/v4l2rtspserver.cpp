@@ -7,7 +7,7 @@
 
 namespace v4l2rtspserver {
 
-SERVER_CONTEXT CTX;
+static SERVER_CONTEXT CTX;
 
 int run_streamer(const char* video_source, const unsigned short& rtspPort, const int& width, const int& height, const int& fps, bool vflip, bool hflip, const int& rotation)
 {
