@@ -6,6 +6,7 @@ Makefile
 # build
 libv4l2wrapper.a
 v4l2rtspserver
+libv4l2rtspsrv.a
 # cpack
 _CPack_Packages
 install_manifest.txt
