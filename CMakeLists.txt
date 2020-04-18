@@ -71,16 +71,17 @@ find_package (Threads)
 target_link_libraries (${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT}) 
 target_link_libraries(${LIB_PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
 
+# temporarily disabling alsa
 #ALSA
-find_package(ALSA QUIET)
-if (ALSA_LIBRARY)
-	message(STATUS "Alsa available")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ALSA")
-        target_link_libraries (${PROJECT_NAME} ${ALSA_LIBRARY}) 
-	target_link_libraries (${LIB_PROJECT_NAME} ${ALSA_LIBRARY}) 
-	
-	SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS}libasound2-dev,)	
-endif (ALSA_LIBRARY)
+#find_package(ALSA QUIET)
+#if (ALSA_LIBRARY)
+#	message(STATUS "Alsa available")
+#	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ALSA")
+#       target_link_libraries (${PROJECT_NAME} ${ALSA_LIBRARY}) 
+#	target_link_libraries (${LIB_PROJECT_NAME} ${ALSA_LIBRARY}) 
+#	
+#	SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS}libasound2-dev,)	
+#endif (ALSA_LIBRARY)
 
 # LOG4CPP
 find_path(LOG4CPP_INCLUDE_DIR log4cpp/Category.hh)
@@ -101,8 +102,10 @@ endif (LOG4CPP_INCLUDE_DIR)
 find_path(LIBLIVE555_INCLUDE_DIR liveMedia/liveMedia.hh)
 if (NOT LIBLIVE555_INCLUDE_DIR)
         message(STATUS "Installing live555")
-        EXEC_PROGRAM("wget http://www.live555.com/liveMedia/public/live555-latest.tar.gz -O - | tar xzf -")
-        EXEC_PROGRAM("cd live && ./genMakefiles linux-gdb && make CPLUSPLUS_COMPILER=${CMAKE_CXX_COMPILER} C_COMPILER=${CMAKE_C_COMPILER} LINK='${CMAKE_CXX_COMPILER} -o' CPPFLAGS=-DALLOW_RTSP_SERVER_PORT_REUSE=1 PREFIX=${CMAKE_STAGING_PREFIX} install")
+# pinned to specific version of live555 due to further incompatibilities
+        EXEC_PROGRAM("wget https://download.videolan.org/pub/contrib/live555/live.2020.03.06.tar.gz -O - | tar xzf -")
+	# disabling openssl
+        EXEC_PROGRAM("cd live && ./genMakefiles linux-no-openssl && make CPLUSPLUS_COMPILER=${CMAKE_CXX_COMPILER} C_COMPILER=${CMAKE_C_COMPILER} LINK='${CMAKE_CXX_COMPILER} -o' CPPFLAGS=-DALLOW_RTSP_SERVER_PORT_REUSE=1 PREFIX=${CMAKE_STAGING_PREFIX} install")
 else (NOT LIBLIVE555_INCLUDE_DIR)
 	SET(CPACK_DEBIAN_PACKAGE_DEPENDS ${CPACK_DEBIAN_PACKAGE_DEPENDS}liblivemedia-dev,)
 endif (NOT LIBLIVE555_INCLUDE_DIR)
